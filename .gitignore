@@ -1,6 +1,9 @@
 # Twitter API keys
 keys.json
 
+# rproj
+*.Rproj
+
 # History files
 .Rhistory
 .Rapp.history
