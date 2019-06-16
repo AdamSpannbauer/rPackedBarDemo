@@ -93,31 +93,7 @@ safe_get_user_tweet_info = function(user, n = 1000, default_value = EMPTY_TWEET_
 }
 
 
-# TODO: Fix bug in rPackedBar::packedBarOutput() and delete these functions
-packedBarOutput = function(outputId, width = "100%", height = "400px", inline = FALSE,
-                            clickedBarInputId = paste0(outputId, "_clicked")) {
-  plotly_out = plotly::plotlyOutput(outputId)
-  shiny::div(get_clicked_packed_bar(outputId, clickedBarInputId),
-             plotly_out)
 }
 
 
-get_clicked_packed_bar = function(outputId, inputId) {
-  shiny::tags$script(
-    shiny::HTML(
-      sprintf(
-        "$(document).on('plotly_click', '#%s', function() {",
-        outputId
-      ),
-      sprintf(
-        "out = document.querySelector(\"#%s > div > div > svg:nth-child(5) > g.hoverlayer > g.hovertext > text > tspan:nth-child(1)\").innerHTML;",
-        outputId
-      ),
-      sprintf(
-        "Shiny.onInputChange('%s', out);",
-        inputId
-      ),
-      "});"
-      )
-    )
 }
