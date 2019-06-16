@@ -22,7 +22,7 @@ sign_oauth = function() {
 }
 
 
-unescape_html <- function(str) {
+unescape_html = function(str) {
   if (is.na(str)) return(NA_character_)
   xml2::xml_text(xml2::read_html(paste0("<x>", str, "</x>")))
 }
