@@ -36,8 +36,12 @@ shinyUI(
         shinycssloaders::withSpinner(
           type = 6,
           color = "#A9A9A9",
-          uiOutput("packed_bar_ui")
-        )
+          uiOutput("packed_bar_ui"),
+        ),
+        br(),
+        hr(),
+        br(),
+        uiOutput("select_n_bars")
       )  # column
     ),  # fluidRow
     br(),

@@ -93,7 +93,89 @@ safe_get_user_tweet_info = function(user, n = 1000, default_value = EMPTY_TWEET_
 }
 
 
+guess_bar_count_details = function(x) {
+  fit_x = seq_along(x)
+  fit_y = sort(x, decreasing = TRUE)
+
+  range_fit_x = c(utils::head(fit_x, 1), utils::tail(fit_x, 1))
+  range_fit_y = c(utils::head(fit_y, 1), utils::tail(fit_y, 1))
+
+  fit_df = data.frame(x = range_fit_x, y = range_fit_y)
+  fit = stats::lm(y ~ x, data = fit_df)
+
+  details_dt_list = lapply(seq_along(x), function(i) {
+    new_obs = data.frame(x = i)
+    pred = stats::predict(fit, new_obs)
+    obs = fit_y[i]
+
+    data.table::data.table(
+      x = i,
+      fit = pred,
+      actual = obs,
+      distance = stats::dist(rbind(pred, obs))[1]
+    )
+  })
+
+  details_dt = data.table::rbindlist(details_dt_list)
+  details_dt[, is_elbow := distance == max(distance)]
+
+  elbow_ind = which(details_dt$is_elbow)[1]
+  details_dt[-elbow_ind, is_elbow := FALSE]
+
+  return(details_dt)
 }
 
 
+plot_guess = function(x, min_bar = 3, max_bar = 25) {
+  details_dt = guess_bar_count_details(x)
+
+  plot_dt = data.table::melt(details_dt,
+                             id.vars = c("x", "is_elbow"),
+                             measure.vars = c("fit", "actual"))
+
+  plot_dt[, min_bar := min_bar]
+  plot_dt[, max_bar := max_bar]
+  guess_value = details_dt[!!is_elbow, x]
+
+
+  plotly::plot_ly(details_dt,
+                  x = ~x,
+                  y = ~actual,
+                  type = "scatter",
+                  mode = "lines",
+                  line = list(color = "#00aced"),
+                  name = "Actual Data") %>%
+    plotly::add_trace(details_dt,
+                      x = ~x,
+                      y = ~fit,
+                      type = "scatter",
+                      mode = "lines",
+                      line = list(color = "#A9A9A9"),
+                      name = "Fit") %>%
+    plotly::add_segments(x = min_bar,
+                         xend = min_bar,
+                         y = 0,
+                         yend = max(details_dt$actual),
+                         line = list(color = "#51001b", dash = "dash"),
+                         name = "Min Bar Count") %>%
+    plotly::add_segments(x = max_bar,
+                         xend = max_bar,
+                         y = 0,
+                         yend = max(details_dt$actual),
+                         line = list(color = "#51001b", dash = "dash"),
+                         name = "Max Bar Count") %>%
+    plotly::add_trace(data = details_dt[!!is_elbow, ],
+                      x = ~x,
+                      y = ~actual,
+                      type = "scatter",
+                      mode = "markers",
+                      line = NULL,
+                      marker = list(size = 10, color = "#022f56"),
+                      name = sprintf("Guessed Elbow*<br><sub>*Max Distance from Fit at x=%s</sub>", guess_value)) %>%
+    plotly::layout(xaxis = list(title = "Index"),
+                   yaxis = list(title = "Value"),
+                   title = "Visualize Guess",
+                   plot_bgcolor = "rgb(245, 245, 245)",
+                   paper_bgcolor = "rgb(245, 245, 245)") %>%
+    plotly::config(displayModeBar = FALSE)
 }
