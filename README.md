@@ -6,7 +6,7 @@ The demo app is an example of using [rPackedBar](https://cran.r-project.org/pack
 <p align="center">
  <a href="https://spannbaueradam.shinyapps.io/rPackedBarDemo/" target="_blank">
  <kbd>
-  <img src="readme/packed_bar_app_screenshot.png" width="90%">
+  <img src="readme/packed_bar_app_screenshot.png" width="100%">
  </kbd>
  </a>
 </p>
