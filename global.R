@@ -179,3 +179,64 @@ plot_guess = function(x, min_bar = 3, max_bar = 25) {
                    paper_bgcolor = "rgb(245, 245, 245)") %>%
     plotly::config(displayModeBar = FALSE)
 }
+
+
+# TODO: Delete these functions when rPackedBar 0.2.2 on CRAN
+packedBarOutput = function(outputId, width = "100%", height = "400px", inline = FALSE,
+                           clickedBarInputId = paste0(outputId, "_clicked")) {
+  plotly_out = plotly::plotlyOutput(outputId)
+  shiny::div(get_clicked_packed_bar(outputId, clickedBarInputId),
+             plotly_out)
+}
+
+
+get_clicked_packed_bar = function(outputId, inputId) {
+  shiny::tags$script(
+    shiny::HTML(
+      sprintf(
+        "$(document).on('plotly_click', '#%s', function() {",
+        outputId
+      ),
+      sprintf(
+        "out = document.querySelector(\"#%s > div > div > svg:nth-child(5) > g.hoverlayer > g.hovertext > text > tspan:nth-child(1)\").innerHTML;",
+        outputId
+      ),
+      sprintf(
+        "Shiny.onInputChange('%s', out);",
+        inputId
+      ),
+      "});"
+    )
+  )
+}
+
+
+guess_bar_count = function(x, min_bar = 3, max_bar = 25) {
+  fit_x = seq_along(x)
+  fit_y = sort(x, decreasing = TRUE)
+
+  range_fit_x = c(utils::head(fit_x, 1), utils::tail(fit_x, 1))
+  range_fit_y = c(utils::head(fit_y, 1), utils::tail(fit_y, 1))
+
+  fit_df = data.frame(x = range_fit_x, y = range_fit_y)
+
+  # Creating straight line between the max values
+  fit = stats::lm(y ~ x, data = fit_df)
+
+  # Distance from point to line
+  distances = vapply(seq_along(x), function(i) {
+    new_obs = data.frame(x = i)
+    pred = c(i, stats::predict(fit, new_obs))
+    obs = c(i, fit_y[i])
+
+    stats::dist(rbind(pred, obs))[1]
+  }, numeric(1))  # nolint
+
+  # Max distance point
+  elbow_ind = which.max(distances) - 1
+
+  if (min_bar > elbow_ind) elbow_ind = min_bar
+  if (max_bar < elbow_ind) elbow_ind = max_bar
+
+  return(elbow_ind)
+}
