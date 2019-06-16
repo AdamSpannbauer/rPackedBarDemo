@@ -56,7 +56,7 @@ shinyServer(function(input, output, session) {
     set.seed(42)
     if (nrow(tweet_dt()) < 10) return(plotly::plotly_empty())
 
-    plot_n_row = guess_bar_count(tweet_dt()$total_fav_rt)
+    plot_n_row = guess_bar_count(tweet_dt()$total_fav_rt, max_bar = 7)
     try({plot_n_row = plot_n_color_bar()})
 
     p = rPackedBar::plotly_packed_bar(input_data = tweet_dt(),
@@ -165,7 +165,7 @@ shinyServer(function(input, output, session) {
                       min = 1,
                       max = 50,
                       step = 1,
-                      value = c(3, 25),
+                      value = c(3, 7),
                       width = "50%")
         ),  # fluidRow
         br(),
